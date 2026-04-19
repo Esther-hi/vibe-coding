@@ -51,6 +51,12 @@ class RecipeRepository {
     return response.data;
   }
 
+  /// 取消收藏菜谱
+  Future<Map<String, dynamic>> unfavoriteRecipe(String recipeId) async {
+    final response = await _apiClient.delete(ApiConfig.favoriteRecipe.replaceAll('{id}', recipeId));
+    return response.data;
+  }
+
   /// 获取收藏列表
   Future<Map<String, dynamic>> getFavorites() async {
     final response = await _apiClient.get(ApiConfig.favorites);

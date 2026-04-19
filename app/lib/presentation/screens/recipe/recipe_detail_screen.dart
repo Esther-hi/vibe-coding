@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/recipe_provider.dart';
 import '../../providers/shopping_list_provider.dart';
+import '../../providers/favorites_provider.dart';
 import '../../../data/models/recipe.dart';
 
 class RecipeDetailScreen extends ConsumerStatefulWidget {
@@ -60,10 +61,21 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
       );
     }
 
+    final favNotifier = ref.read(favoritesProvider.notifier);
+    final isFav = ref.watch(favoritesProvider).favorites.any((r) => r.id == recipe.id);
     final availableIngredients = recipe.ingredients.where((e) => e.isAvailable).toList();
 
     return Scaffold(
-      appBar: AppBar(title: Text(recipe.name)),
+      appBar: AppBar(
+        title: Text(recipe.name),
+        actions: [
+          IconButton(
+            icon: Icon(isFav ? Icons.favorite : Icons.favorite_border,
+                color: isFav ? Colors.red : null),
+            onPressed: () => favNotifier.toggleFavorite(recipe.id),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
