@@ -19,4 +19,9 @@ class ApiConfig {
 
   static const String generateShoppingList = '/shopping-list/generate';
   static const String shoppingList = '/shopping-list';
+
+  static const String sendCode = '/auth/send-code';
+  static const String resetPassword = '/auth/reset-password';
+  static const String todoList = '/shopping-list/todo';
+  static const String chat = '/chat';
 }

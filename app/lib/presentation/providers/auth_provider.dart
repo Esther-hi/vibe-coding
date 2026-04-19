@@ -10,6 +10,7 @@ class AuthState {
   final String? userId;
   final String? username;
   final String? email;
+  final String? phone;
 
   AuthState({
     this.isAuthenticated = false,
@@ -17,6 +18,7 @@ class AuthState {
     this.userId,
     this.username,
     this.email,
+    this.phone,
   });
 
   AuthState copyWith({
@@ -25,6 +27,7 @@ class AuthState {
     String? userId,
     String? username,
     String? email,
+    String? phone,
   }) {
     return AuthState(
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
@@ -32,6 +35,7 @@ class AuthState {
       userId: userId ?? this.userId,
       username: username ?? this.username,
       email: email ?? this.email,
+      phone: phone ?? this.phone,
     );
   }
 }
@@ -68,10 +72,54 @@ class AuthNotifier extends StateNotifier<AuthState> {
         isAuthenticated: true,
         token: token,
       );
+      await _loadUserData();
       return true;
     } catch (e) {
       return false;
     }
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final userData = await _authRepository.getCurrentUser();
+      state = state.copyWith(
+        userId: userData['id'],
+        username: userData['username'],
+        email: userData['email'],
+        phone: userData['phone'],
+      );
+      await _localStorage.saveUserData({
+        'id': userData['id'],
+        'username': userData['username'],
+        'email': userData['email'],
+        'phone': userData['phone'],
+      });
+    } catch (_) {}
+  }
+
+  Future<bool> loginWithPhone(String phone, String code) async {
+    try {
+      final response = await _authRepository.loginWithPhone(phone: phone, code: code);
+      final token = response['access_token'];
+      await _localStorage.saveToken(token);
+      state = state.copyWith(isAuthenticated: true, token: token);
+      await _loadUserData();
+      return true;
+    } catch (_) { return false; }
+  }
+
+  Future<bool> sendCode(String phone, String purpose) async {
+    try {
+      await _authRepository.sendCode(phone: phone, purpose: purpose);
+      return true;
+    } catch (_) { return false; }
+  }
+
+  Future<bool> registerWithPhone(String username, String phone, String code, String password) async {
+    try {
+      await _authRepository.registerWithPhone(username: username, phone: phone, code: code, password: password);
+      return await loginWithPhone(phone, code);
+    } catch (_) { return false; }
   }
 
   /// 用户注册

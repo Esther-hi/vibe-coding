@@ -44,4 +44,29 @@ class AuthRepository {
     final response = await _apiClient.get(ApiConfig.currentUser);
     return response.data;
   }
+
+  Future<Map<String, dynamic>> sendCode({required String phone, String purpose = 'register'}) async {
+    final response = await _apiClient.post(ApiConfig.sendCode, data: {'phone': phone, 'purpose': purpose});
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> loginWithPhone({required String phone, required String code}) async {
+    final response = await _apiClient.post(ApiConfig.login, data: {'phone': phone, 'code': code});
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> loginWithPassword({required String username, required String password}) async {
+    final response = await _apiClient.post(ApiConfig.login, data: {'username': username, 'password': password});
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> registerWithPhone({required String username, required String phone, required String code, required String password}) async {
+    final response = await _apiClient.post(ApiConfig.register, data: {'username': username, 'phone': phone, 'code': code, 'password': password});
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> resetPassword({required String phone, required String code, required String newPassword}) async {
+    final response = await _apiClient.post(ApiConfig.resetPassword, data: {'phone': phone, 'code': code, 'new_password': newPassword});
+    return response.data;
+  }
 }

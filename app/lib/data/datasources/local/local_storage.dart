@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class LocalStorage {
@@ -28,11 +29,14 @@ class LocalStorage {
 
   /// 保存用户数据
   Future<void> saveUserData(Map<String, dynamic> userData) async {
-    // 简化处理，实际可用 Hive 存储对象
+    final encoded = jsonEncode(userData);
+    await _box?.put(_userKey, encoded);
   }
 
   /// 获取用户数据
   Future<Map<String, dynamic>?> getUserData() async {
-    return null;
+    final encoded = _box?.get(_userKey);
+    if (encoded == null) return null;
+    return jsonDecode(encoded) as Map<String, dynamic>;
   }
 }
