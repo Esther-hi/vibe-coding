@@ -33,6 +33,12 @@ class Settings(BaseSettings):
     MAX_IMAGE_SIZE: int = 10 * 1024 * 1024  # 10MB
     ALLOWED_IMAGE_TYPES: List[str] = ["image/jpeg", "image/png", "image/webp"]
 
+    # 短信验证码配置
+    SMS_CODE_LENGTH: int = 6
+    SMS_CODE_EXPIRE_MINUTES: int = 5
+    SMS_CODE_RESEND_INTERVAL_SECONDS: int = 60
+    SMS_ENABLED: bool = False
+
     class Config:
         env_file = ".env"
         case_sensitive = True
