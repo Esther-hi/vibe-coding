@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../providers/shopping_list_provider.dart';
+import '../../providers/todo_provider.dart';
 
 class ShoppingListScreen extends ConsumerStatefulWidget {
   const ShoppingListScreen({super.key});
@@ -21,6 +22,30 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
         ref.read(shoppingListProvider.notifier).loadShoppingList();
       }
     });
+  }
+
+  Future<void> _addToTodo() async {
+    final shoppingState = ref.read(shoppingListProvider);
+    final items = shoppingState.items;
+    if (items.isEmpty) return;
+
+    final todoItems = items.map((item) => <String, dynamic>{
+      'name': item.ingredientName,
+      'quantity': item.quantity,
+    }).toList();
+
+    await ref.read(todoProvider.notifier).createTodo(
+      [shoppingState.currentRecipeName ?? '菜谱'],
+      shoppingState.currentServings ?? '2人份',
+      todoItems,
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('已加入待办，可在待办页面查看')),
+      );
+      context.pop();
+    }
   }
 
   @override
@@ -103,7 +128,42 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
 
                       const SizedBox(height: 24),
 
-                      // 完成采购按钮
+                      // 有未购买项时：显示双按钮
+                      if (unpurchased.isNotEmpty)
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: _addToTodo,
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                ),
+                                child: const Text('📋 加入待办',
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  // 进入采购流程：勾选/取消勾选行为已通过列表项的 onCheck 生效
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('开始采购，请逐项勾选已购买的食材')),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                ),
+                                child: const Text('🛒 开始采购',
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                      // 全部已购买时：显示完成按钮
                       if (unpurchased.isEmpty && purchased.isNotEmpty)
                         SizedBox(
                           width: double.infinity,

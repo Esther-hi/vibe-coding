@@ -133,6 +133,17 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
 
             const SizedBox(height: 24),
 
+            // Multi-select hint
+            if (state.selectedRecipeIds.length > 1)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  '已选 ${state.selectedRecipeIds.length} 道菜 · 缺失食材将合并到购物清单',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+
             // 生成购物清单按钮
             SizedBox(
               width: double.infinity,

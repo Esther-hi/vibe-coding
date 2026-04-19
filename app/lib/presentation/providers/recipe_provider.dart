@@ -6,6 +6,7 @@ import 'api_client_provider.dart';
 class RecipeState {
   final List<Recipe> recipes;
   final Recipe? selectedRecipe;
+  final Set<String> selectedRecipeIds;
   final int peopleCount;
   final String? tastePreference;
   final String? cookingTimeLimit;
@@ -15,6 +16,7 @@ class RecipeState {
   RecipeState({
     this.recipes = const [],
     this.selectedRecipe,
+    this.selectedRecipeIds = const {},
     this.peopleCount = 2,
     this.tastePreference,
     this.cookingTimeLimit,
@@ -25,6 +27,7 @@ class RecipeState {
   RecipeState copyWith({
     List<Recipe>? recipes,
     Recipe? selectedRecipe,
+    Set<String>? selectedRecipeIds,
     int? peopleCount,
     String? tastePreference,
     String? cookingTimeLimit,
@@ -34,6 +37,7 @@ class RecipeState {
     return RecipeState(
       recipes: recipes ?? this.recipes,
       selectedRecipe: selectedRecipe ?? this.selectedRecipe,
+      selectedRecipeIds: selectedRecipeIds ?? this.selectedRecipeIds,
       peopleCount: peopleCount ?? this.peopleCount,
       tastePreference: tastePreference ?? this.tastePreference,
       cookingTimeLimit: cookingTimeLimit ?? this.cookingTimeLimit,
@@ -80,13 +84,31 @@ class RecipeNotifier extends StateNotifier<RecipeState> {
       final recipesData = response['data']?['recipes'] as List? ?? [];
       final recipes = recipesData.map((e) => Recipe.fromJson(e)).toList();
 
-      state = state.copyWith(recipes: recipes, isLoading: false);
+      state = state.copyWith(
+        recipes: recipes,
+        isLoading: false,
+        selectedRecipeIds: recipes.isNotEmpty ? {recipes.first.id} : <String>{},
+      );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
         error: '菜谱推荐失败，请重试',
       );
     }
+  }
+
+  void toggleRecipeSelection(String recipeId) {
+    final current = Set<String>.from(state.selectedRecipeIds);
+    if (current.contains(recipeId)) {
+      current.remove(recipeId);
+    } else {
+      current.add(recipeId);
+    }
+    state = state.copyWith(selectedRecipeIds: current);
+  }
+
+  void clearSelection() {
+    state = state.copyWith(selectedRecipeIds: {});
   }
 
   void selectRecipe(Recipe recipe) {
