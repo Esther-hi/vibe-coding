@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能厨房助手 V1 低保真原型</title>
+  <style>
+    :root {
+      --bg: #f5f1e8;
+      --panel: #fffdf8;
+      --ink: #2f241f;
+      --muted: #7d6d63;
+      --line: #d8cbbd;
+      --accent: #d46a3a;
+      --accent-soft: #f7e1d6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background:
+        radial-gradient(circle at top left, #fff6e5 0, transparent 30%),
+        radial-gradient(circle at bottom right, #f0dfd2 0, transparent 28%),
+        var(--bg);
+      color: var(--ink);
+    }
+
+    .page {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 32px 24px 56px;
+    }
+
+    .header {
+      margin-bottom: 28px;
+    }
+
+    .header h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.15;
+    }
+
+    .header p {
+      margin: 0;
+      max-width: 900px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 18px 0 26px;
+    }
+
+    .chip {
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.7);
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 28px 24px;
+      align-items: start;
+    }
+
+    .screen-wrap {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .step {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .phone {
+      width: 260px;
+      min-height: 560px;
+      border: 2px solid #231a16;
+      border-radius: 34px;
+      background: var(--panel);
+      box-shadow: 0 18px 40px rgba(84, 56, 39, 0.12);
+      overflow: hidden;
+    }
+
+    .topbar {
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #271d18;
+    }
+
+    .notch {
+      width: 96px;
+      height: 14px;
+      border-radius: 999px;
+      background: #140e0b;
+    }
+
+    .frame {
+      padding: 18px 16px 20px;
+    }
+
+    .title {
+      margin: 0 0 4px;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .block {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: #fff;
+    }
+
+    .block.soft {
+      background: #fcf7f1;
+    }
+
+    .primary {
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .secondary {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .ghost {
+      border: 1px dashed var(--line);
+      background: transparent;
+      color: var(--muted);
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 14px;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 12px;
+      background: #fff;
+    }
+
+    .tag.active {
+      background: var(--accent-soft);
+      border-color: #efb59b;
+      color: #8b431f;
+      font-weight: 700;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: #fcf7f1;
+      border: 1px solid #efe2d6;
+      font-size: 13px;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .recipe {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: #fff;
+    }
+
+    .recipe h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+    }
+
+    .recipe p {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--line);
+      margin: 12px 0;
+    }
+
+    .caption {
+      max-width: 260px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      text-align: left;
+    }
+
+    .modal {
+      margin-top: 12px;
+      border: 1px solid #e5b8a4;
+      border-radius: 18px;
+      background: #fff7f2;
+      padding: 14px;
+    }
+
+    .modal h4 {
+      margin: 0 0 8px;
+      font-size: 15px;
+    }
+
+    .modal p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 720px) {
+      .page {
+        padding: 20px 14px 40px;
+      }
+
+      .header h1 {
+        font-size: 26px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="header">
+      <h1>智能厨房助手 V1 低保真原型</h1>
+      <p>
+        这是一版基于当前 PRD 的移动端线框原型，围绕 V1 主闭环展开：
+        识别食材 -> 确认食材 -> 填写条件 -> 推荐菜谱 -> 查看详情 -> 生成购物清单。
+      </p>
+      <div class="legend">
+        <span class="chip">目标用户：家庭做饭者</span>
+        <span class="chip">主场景：晚餐决策</span>
+        <span class="chip">版本边界：单菜谱闭环</span>
+        <span class="chip">后续演进：AI 助手化</span>
+      </div>
+    </section>
+
+    <section class="flow">
+      <article class="screen-wrap">
+        <div class="step">01 首页</div>
+        <div class="phone">
+          <div class="topbar"><div class="notch"></div></div>
+          <div class="frame">
+            <h2 class="title">今晚吃什么？</h2>
+            <p class="subtitle">基于你家里现有食材，快速推荐可做菜谱。</p>
+            <div class="block soft">
+              <div class="primary">拍照 / 上传识别食材</div>
+              <div class="secondary">手动输入食材</div>
+              <div class="ghost">查看购物清单</div>
+            </div>
+            <div class="block">
+              <strong>产品主价值</strong>
+              <div class="divider"></div>
+              <div class="list">
+                <div class="item"><span>知道能做什么</span><span class="meta">推荐菜谱</span></div>
+                <div class="item"><span>知道怎么做</span><span class="meta">步骤清晰</span></div>
+                <div class="item"><span>知道还缺什么</span><span class="meta">购物清单</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="caption">首页尽量任务导向，不做复杂内容分发，让用户快速进入一次做饭决策流程。</div>
+      </article>
+
+      <article class="screen-wrap">
+        <div class="step">02 食材输入 / 识别</div>
+        <div class="phone">
+          <div class="topbar"><div class="notch"></div></div>
+          <div class="frame">
+            <h2 class="title">添加食材</h2>
+            <p class="subtitle">支持拍照识别，也支持手动连续添加，避免识别失败直接卡住。</p>
+            <div class="block soft" style="height: 160px; display: flex; align-items: center; justify-content: center;">
+              冰箱照片上传区域
+            </div>
+            <div class="row" style="margin-bottom: 12px;">
+              <span class="tag active">拍照</span>
+              <span class="tag">上传图片</span>
+              <span class="tag">手动输入</span>
+            </div>
+            <div class="block">
+              <div class="item"><span>鸡蛋</span><span class="meta">已添加</span></div>
+              <div class="item"><span>番茄</span><span class="meta">已添加</span></div>
+              <div class="item"><span>面条</span><span class="meta">已添加</span></div>
+            </div>
+            <div class="primary">继续</div>
+          </div>
+        </div>
+        <div class="caption">这一页负责获得初始食材列表，不在这里做复杂校正，校正放到下一页。</div>
+      </article>
+
+      <article class="screen-wrap">
+        <div class="step">03 食材确认</div>
+        <div class="phone">
+          <div class="topbar"><div class="notch"></div></div>
+          <div class="frame">
+            <h2 class="title">确认食材</h2>
+            <p class="subtitle">请确认哪些食材识别正确，也可以补充遗漏项。</p>
+            <div class="list">
+              <div class="item"><span>鸡蛋</span><span class="meta">编辑 / 删除</span></div>
+              <div class="item"><span>番茄</span><span class="meta">编辑 / 删除</span></div>
+              <div class="item"><span>面条</span><span class="meta">编辑 / 删除</span></div>
+            </div>
+            <div class="block soft">
+              <strong>补充食材</strong>
+              <div class="divider"></div>
+              <div class="ghost">+ 添加未识别出的食材</div>
+            </div>
+            <div class="primary">确认并开始推荐</div>
+          </div>
+        </div>
+        <div class="caption">这是主链路里的校正节点，确保进入推荐前的输入是可信的。</div>
+      </article>
+
+      <article class="screen-wrap">
+        <div class="step">04 推荐条件</div>
+        <div class="phone">
+          <div class="topbar"><div class="notch"></div></div>
+          <div class="frame">
+            <h2 class="title">推荐条件</h2>
+            <p class="subtitle">人数必填，口味和时长可选。先收最少信息，再给更合理的推荐。</p>
+            <div class="block">
+              <strong>几个人吃饭？</strong>
+              <div class="row" style="margin-top: 10px;">
+                <span class="tag">1人</span>
+                <span class="tag active">2人</span>
+                <span class="tag">3-4人</span>
+                <span class="tag">5人+</span>
+              </div>
+            </div>
+            <div class="block">
+              <strong>口味偏好</strong>
+              <div class="row" style="margin-top: 10px;">
+                <span class="tag active">清淡</span>
+                <span class="tag">下饭</span>
+                <span class="tag">不辣</span>
+              </div>
+            </div>
+            <div class="block">
+              <strong>烹饪时长</strong>
+              <div class="row" style="margin-top: 10px;">
+                <span class="tag">15分钟内</span>
+                <span class="tag active">30分钟内</span>
+                <span class="tag">不限</span>
+              </div>
+            </div>
+            <div class="primary">生成推荐</div>
+          </div>
+        </div>
+        <div class="caption">V1 只收集最关键条件，避免配置太重影响转化。</div>
+      </article>
+
+      <article class="screen-wrap">
+        <div class="step">05 菜谱推荐</div>
+        <div class="phone">
+          <div class="topbar"><div class="notch"></div></div>
+          <div class="frame">
+            <h2 class="title">推荐菜谱</h2>
+            <p class="subtitle">优先推荐匹配度高、缺料少、适合快速制作的菜。</p>
+            <div class="recipe">
+              <h3>番茄鸡蛋面</h3>
+              <p>2人份 · 20分钟 · 简单 · 缺1项</p>
+              <div class="secondary">查看详情</div>
+            </div>
+            <div class="recipe">
+              <h3>番茄炒蛋</h3>
+              <p>2人份 · 15分钟 · 简单 · 缺0项</p>
+              <div class="secondary">查看详情</div>
+            </div>
+            <div class="recipe">
+              <h3>鸡蛋拌面</h3>
+              <p>2人份 · 18分钟 · 简单 · 缺2项</p>
+              <div class="secondary">查看详情</div>
+            </div>
+            <div class="ghost">重新调整人数 / 口味 / 时长</div>
+          </div>
+        </div>
+        <div class="caption">推荐列表不是做内容浏览，而是帮助用户快速完成一次选择。</div>
+      </article>
+
+      <article class="screen-wrap">
+        <div class="step">06 菜谱详情</div>
+        <div class="phone">
+          <div class="topbar"><div class="notch"></div></div>
+          <div class="frame">
+            <h2 class="title">番茄鸡蛋面</h2>
+            <p class="subtitle">2人份 · 20分钟 · 简单</p>
+            <div class="block soft">
+              <strong>已有食材</strong>
+              <div class="divider"></div>
+              <div class="item"><span>鸡蛋 3个</span><span class="meta">已具备</span></div>
+              <div class="item"><span>番茄 2个</span><span class="meta">已具备</span></div>
+            </div>
+            <div class="block">
+              <strong>缺失食材</strong>
+              <div class="divider"></div>
+              <div class="item"><span>挂面 300g</span><span class="meta">待购买</span></div>
+            </div>
+            <div class="block">
+              <strong>步骤</strong>
+              <div class="divider"></div>
+              <div class="meta">1. 番茄切块</div>
+              <div class="meta">2. 鸡蛋炒散</div>
+              <div class="meta">3. 煮面并合并调味</div>
+            </div>
+            <div class="primary">生成购物清单</div>
+          </div>
+        </div>
+        <div class="caption">详情页重点是“我能不能做、还差什么、怎么做”，不是展示长内容。</div>
+      </article>
+
+      <article class="screen-wrap">
+        <div class="step">07 购物清单</div>
+        <div class="phone">
+          <div class="topbar"><div class="notch"></div></div>
+          <div class="frame">
+            <h2 class="title">购物清单</h2>
+            <p class="subtitle">基于当前目标菜谱的缺失食材生成，用于完成本次做饭准备。</p>
+            <div class="block">
+              <strong>番茄鸡蛋面 · 2人份</strong>
+              <div class="divider"></div>
+              <div class="item"><span>挂面</span><span class="meta">300g</span></div>
+              <div class="item"><span>小葱</span><span class="meta">1把</span></div>
+            </div>
+            <div class="block soft">
+              <div class="item"><span>挂面</span><span class="meta">已购买</span></div>
+              <div class="item"><span>小葱</span><span class="meta">删除 / 勾选</span></div>
+            </div>
+            <div class="primary">完成采购，开始做饭</div>
+          </div>
+        </div>
+        <div class="caption">V1 购物清单只服务于当前单菜谱任务，不扩展成长周期采购系统。</div>
+      </article>
+
+      <article class="screen-wrap">
+        <div class="step">08 菜品制作</div>
+        <div class="phone">
+          <div class="topbar"><div class="notch"></div></div>
+          <div class="frame">
+            <h2 class="title">开始做饭</h2>
+            <p class="subtitle">按步骤完成当前菜品制作，让用户从“缺什么”顺滑进入“怎么做”。</p>
+            <div class="block soft">
+              <strong>当前菜品</strong>
+              <div class="divider"></div>
+              <div class="item"><span>番茄鸡蛋面</span><span class="meta">2人份</span></div>
+            </div>
+            <div class="block">
+              <strong>制作步骤</strong>
+              <div class="divider"></div>
+              <div class="item"><span>步骤 1</span><span class="meta">番茄切块，鸡蛋打散备用</span></div>
+              <div class="item"><span>步骤 2</span><span class="meta">热锅炒蛋后盛出，再炒番茄出汁</span></div>
+              <div class="item"><span>步骤 3</span><span class="meta">加入清水煮沸，下面条并回锅鸡蛋</span></div>
+              <div class="item"><span>步骤 4</span><span class="meta">调味后出锅，撒上小葱即可</span></div>
+            </div>
+            <div class="block">
+              <strong>本页目标</strong>
+              <div class="divider"></div>
+              <div class="meta">让用户边做边看，不需要在详情页和购物页之间来回切换。</div>
+            </div>
+            <div class="primary">完成烹饪</div>
+            <div class="modal">
+              <h4>确认完成本次烹饪？</h4>
+              <p>确认后进入“开始品鉴”，并返回首页，结束本次做饭流程。</p>
+              <div class="secondary">确认完成（开始品鉴）</div>
+              <div class="ghost">返回首页</div>
+            </div>
+          </div>
+        </div>
+        <div class="caption">新增确认弹窗后，V1 主链可以完整闭环到“完成烹饪并回到首页”，历史记录作为后续版本再承接沉淀。</div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

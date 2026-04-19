@@ -1,0 +1,36 @@
+"""
+食材识别工具
+"""
+from langchain.tools import BaseTool
+from typing import Optional, Type
+from pydantic import BaseModel, Field
+import asyncio
+
+from services.vision_service import VisionService
+
+
+class IngredientRecognitionInput(BaseModel):
+    """食材识别工具输入模型"""
+    image_base64: str = Field(description="Base64 编码的图片数据")
+
+
+class IngredientRecognitionTool(BaseTool):
+    """食材识别工具 - 使用 qwen-vl-max 多模态模型"""
+
+    name = "ingredient_recognition"
+    description = "识别冰箱照片中的食材，返回食材列表、数量和新鲜度"
+    args_schema: Type[BaseModel] = IngredientRecognitionInput
+
+    def __init__(self):
+        super().__init__()
+        self.vision_service = VisionService()
+
+    def _run(self, image_base64: str) -> str:
+        """同步执行食材识别"""
+        return asyncio.run(self._arun(image_base64))
+
+    async def _arun(self, image_base64: str) -> str:
+        """异步执行食材识别"""
+        result = await self.vision_service.recognize_ingredients(image_base64)
+        import json
+        return json.dumps(result, ensure_ascii=False, indent=2)
