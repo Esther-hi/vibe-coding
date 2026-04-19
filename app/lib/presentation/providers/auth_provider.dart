@@ -136,6 +136,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  Future<bool> resetPassword(String phone, String code, String newPassword) async {
+    try {
+      await _authRepository.resetPassword(phone: phone, code: code, newPassword: newPassword);
+      return true;
+    } catch (_) { return false; }
+  }
+
   /// 退出登录
   Future<void> logout() async {
     await _localStorage.clearToken();

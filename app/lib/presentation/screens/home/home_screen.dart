@@ -11,12 +11,6 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('智能厨房助手'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () => context.push('/profile'),
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
