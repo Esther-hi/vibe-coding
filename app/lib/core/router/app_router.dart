@@ -12,6 +12,7 @@ import '../../presentation/screens/ingredients/ingredient_confirm_screen.dart';
 import '../../presentation/screens/cooking/cooking_screen.dart';
 import '../../presentation/widgets/recommendation_condition_dialog.dart';
 import '../../presentation/screens/todo/todo_screen.dart';
+import '../../presentation/screens/chat/chat_screen.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -77,8 +78,8 @@ class AppRouter {
           ]),
         ],
       ),
-      // Chat route outside shell — will be created later
-      // GoRoute(path: '/chat', builder: (context, state) => const ChatScreen()),
+      // Chat route outside shell
+      GoRoute(path: '/chat', builder: (context, state) => const ChatScreen()),
     ],
   );
 }

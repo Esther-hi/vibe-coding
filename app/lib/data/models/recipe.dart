@@ -99,3 +99,21 @@ class Recipe {
     );
   }
 }
+
+class StepInfo {
+  final String text;
+  final int? timerMinutes;
+
+  StepInfo({required this.text, this.timerMinutes});
+
+  static StepInfo parse(String stepText) {
+    final regex = RegExp(r'\[timer:(\d+)m\]');
+    final match = regex.firstMatch(stepText);
+    if (match != null) {
+      final minutes = int.parse(match.group(1)!);
+      final cleanText = stepText.replaceAll(regex, '').trim();
+      return StepInfo(text: cleanText, timerMinutes: minutes);
+    }
+    return StepInfo(text: stepText);
+  }
+}

@@ -14,6 +14,7 @@ from contextlib import asynccontextmanager
 
 from core.config import settings
 from api.routes import auth, ingredients, recipes, shopping_list
+from api.routes.chat import router as chat_router
 
 
 @asynccontextmanager
@@ -49,6 +50,7 @@ app.include_router(auth.router, prefix=f"{settings.API_V1_PREFIX}/auth", tags=["
 app.include_router(ingredients.router, prefix=f"{settings.API_V1_PREFIX}/ingredients", tags=["食材识别"])
 app.include_router(recipes.router, prefix=f"{settings.API_V1_PREFIX}/recipes", tags=["菜谱"])
 app.include_router(shopping_list.router, prefix=f"{settings.API_V1_PREFIX}/shopping-list", tags=["购物清单"])
+app.include_router(chat_router, prefix=settings.API_V1_PREFIX + "/chat", tags=["chat"])
 
 
 @app.get("/")

@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../providers/recipe_provider.dart';
 import '../../providers/ingredient_provider.dart';
 import '../../providers/shopping_list_provider.dart';
+import '../../../data/models/recipe.dart';
+import '../../widgets/timer_widget.dart';
 
 class CookingScreen extends ConsumerStatefulWidget {
   const CookingScreen({super.key});
@@ -125,7 +127,8 @@ class _CookingScreenState extends ConsumerState<CookingScreen> {
                   const Divider(height: 16),
                   ...steps.asMap().entries.map((entry) {
                     final index = entry.key;
-                    final step = entry.value;
+                    final stepText = entry.value;
+                    final stepInfo = StepInfo.parse(stepText);
                     final isCurrent = index == _currentStep;
                     final isDone = index < _currentStep;
 
@@ -173,7 +176,7 @@ class _CookingScreenState extends ConsumerState<CookingScreen> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      step,
+                                      stepInfo.text,
                                       style: TextStyle(
                                         fontSize: 13,
                                         decoration: isDone ? TextDecoration.lineThrough : null,
@@ -183,6 +186,32 @@ class _CookingScreenState extends ConsumerState<CookingScreen> {
                                   ],
                                 ),
                               ),
+                              if (stepInfo.timerMinutes != null)
+                                IconButton(
+                                  icon: const Icon(Icons.timer, size: 20),
+                                  color: const Color(0xFFE8734A),
+                                  onPressed: () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      builder: (_) => TimerWidget(
+                                        minutes: stepInfo.timerMinutes!,
+                                        stepDescription: stepInfo.text,
+                                        onComplete: () {
+                                          Navigator.pop(context);
+                                          showDialog(
+                                            context: context,
+                                            builder: (_) => AlertDialog(
+                                              title: const Text('这一步完成啦！'),
+                                              content: Text(stepInfo.text),
+                                              actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('好的'))],
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  },
+                                ),
                             ],
                           ),
                         ),

@@ -31,32 +31,36 @@ class KitchenAssistantAgent:
 
     def _create_agent(self):
         """创建 ReAct Agent"""
-        prompt = PromptTemplate.from_template(
-            """你是一个专业的厨房助手，帮助用户处理食材识别、菜谱推荐等问题。
+        from langchain_community.chat_models import ChatTongyi
 
-            可用工具:
-            {tools}
-
-            工具名称: {tool_names}
-
-            使用格式:
-            Thought: 思考下一步该做什么
-            Action: 工具名称
-            Action Input: 工具输入参数（JSON格式）
-            Observation: 工具返回结果
-            ... (重复 Thought/Action/Action Input/Observation)
-            Thought: 我现在知道最终答案了
-            Final Answer: 最终答案
-
-            用户输入: {input}
-
-            {agent_scratchpad}
-            """
+        llm = ChatTongyi(
+            model="qwen-turbo",
+            dashscope_api_key=self.api_key,
         )
+        prompt = PromptTemplate.from_template(
+            """你是一个温暖、专业的美食助手，帮助用户解决各种关于做菜的问题。
 
-        # 由于通义千问暂不支持 LangChain 直接集成，这里使用简化版本
-        # 实际使用时直接调用各个 Tool
-        return None
+可用工具:
+{tools}
+
+工具名称: {tool_names}
+
+使用格式:
+Thought: 思考下一步该做什么
+Action: 工具名称
+Action Input: 工具输入参数（JSON格式）
+Observation: 工具返回结果
+... (重复 Thought/Action/Action Input/Observation)
+Thought: 我现在知道最终答案了
+Final Answer: 最终答案
+
+用户输入: {input}
+
+{agent_scratchpad}
+"""
+        )
+        agent = create_react_agent(llm, self.tools, prompt)
+        return AgentExecutor(agent=agent, tools=self.tools, verbose=True, max_iterations=5)
 
     async def process_request(self, user_input: str, context: Dict = None) -> Dict:
         """
@@ -69,7 +73,14 @@ class KitchenAssistantAgent:
         Returns:
             处理结果
         """
-        # 简单的意图识别
+        if self.agent:
+            try:
+                result = await self.agent.ainvoke({"input": user_input})
+                return {"intent": "chat", "result": result.get("output", str(result))}
+            except Exception as e:
+                return {"intent": "error", "result": str(e)}
+
+        # Fallback: simple intent detection
         intent = self._detect_intent(user_input)
 
         if intent == "ingredient_recognition":
