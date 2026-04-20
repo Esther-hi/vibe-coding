@@ -1,8 +1,8 @@
 """
 厨房助手主 Agent
 """
-from langchain.agents import AgentExecutor, create_react_agent
-from langchain.prompts import PromptTemplate
+from langchain_classic.agents import AgentExecutor, create_react_agent
+from langchain_classic.prompts import PromptTemplate
 from typing import Dict, List, Any
 
 from core.config import settings
