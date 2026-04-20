@@ -46,32 +46,55 @@ class ShoppingListNotifier extends StateNotifier<ShoppingListState> {
   ShoppingListNotifier(this._repository) : super(ShoppingListState());
 
   Future<void> generateFromRecipe(Recipe recipe) async {
-    // 如果已经为同一个菜谱生成过，不重复生成
-    if (state.currentRecipeId == recipe.id && state.items.isNotEmpty) {
+    await generateFromRecipes([recipe]);
+  }
+
+  Future<void> generateFromRecipes(List<Recipe> recipes) async {
+    if (recipes.isEmpty) return;
+
+    final recipeNames = recipes.map((r) => r.name).join('、');
+    final recipeIds = recipes.map((r) => r.id).join(',');
+
+    if (state.currentRecipeId == recipeIds && state.items.isNotEmpty) {
       return;
     }
+
+    final servings = recipes.first.servings;
 
     state = state.copyWith(
       isLoading: true,
       error: null,
-      currentRecipeName: recipe.name,
-      currentServings: recipe.servings,
-      currentRecipeId: recipe.id,
+      currentRecipeName: recipeNames,
+      currentServings: servings,
+      currentRecipeId: recipeIds,
     );
     try {
-      // 先清除后端所有旧的购物清单数据
       await _clearAllItems();
 
-      final missingIngredients = recipe.missingIngredients
-          .map((e) => {'name': e.name, 'quantity': e.quantity})
-          .toList();
-      final availableIngredients = recipe.ingredients
-          .where((e) => e.isAvailable)
+      // 合并所有菜谱的缺失食材（去重）
+      final mergedMissing = <String, Map<String, dynamic>>{};
+      for (final recipe in recipes) {
+        for (final ing in recipe.missingIngredients) {
+          final key = ing.name;
+          if (mergedMissing.containsKey(key)) {
+            // 同名食材合并数量（简单拼接）
+            mergedMissing[key]!['quantity'] =
+                '${mergedMissing[key]!['quantity']} + ${ing.quantity}';
+          } else {
+            mergedMissing[key] = {'name': ing.name, 'quantity': ing.quantity};
+          }
+        }
+      }
+      final missingIngredients = mergedMissing.values.toList();
+
+      final availableIngredients = recipes
+          .expand((r) => r.ingredients.where((e) => e.isAvailable))
           .map((e) => e.name)
+          .toSet()
           .toList();
 
       await _repository.generateShoppingList(
-        recipeName: recipe.name,
+        recipeName: recipeNames,
         missingIngredients: missingIngredients,
         availableIngredients: availableIngredients,
       );

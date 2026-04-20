@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/chat_provider.dart';
+import '../../../core/theme/app_theme.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
@@ -46,8 +47,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('美食助手'),
-        actions: const [Padding(padding: EdgeInsets.only(right: 16), child: Icon(Icons.smart_toy))],
+        title: const Text('🤖 美食助手'),
+        actions: const [Padding(padding: EdgeInsets.only(right: 16), child: Text('🤖', style: TextStyle(fontSize: 24)))],
       ),
       body: Column(
         children: [
@@ -57,11 +58,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.smart_toy, size: 48, color: Colors.grey),
+                        const Text('🤖', style: TextStyle(fontSize: 48)),
                         const SizedBox(height: 12),
-                        Text('你好！我是你的美食助手', style: TextStyle(fontSize: 16, color: Colors.grey[600])),
+                        Text('你好！我是你的美食助手', style: TextStyle(fontSize: 16, color: AppTheme.secondaryTextColor)),
                         const SizedBox(height: 4),
-                        Text('可以问我食材搭配、烹饪技巧等', style: TextStyle(fontSize: 13, color: Colors.grey[400])),
+                        Text('可以问我食材搭配、烹饪技巧等', style: TextStyle(fontSize: 13, color: AppTheme.secondaryTextColor)),
                       ],
                     ),
                   )
@@ -79,10 +80,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                           constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
                           decoration: BoxDecoration(
-                            color: isUser ? const Color(0xFFE8734A) : Colors.grey[100],
-                            borderRadius: BorderRadius.circular(16),
+                            color: isUser ? AppTheme.primaryColor : Theme.of(context).cardColor,
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Text(msg.content, style: TextStyle(color: isUser ? Colors.white : Colors.black87)),
+                          child: Text(msg.content, style: TextStyle(color: isUser ? Colors.white : Theme.of(context).colorScheme.onSurface)),
                         ),
                       );
                     },
@@ -93,8 +94,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(color: Colors.grey[200]!)),
+              color: Theme.of(context).scaffoldBackgroundColor,
+              border: Border(top: BorderSide(color: AppTheme.primaryColor.withValues(alpha: 0.12))),
             ),
             child: SafeArea(
               child: Row(
@@ -114,7 +115,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   IconButton(
                     onPressed: _send,
                     icon: const Icon(Icons.send),
-                    style: IconButton.styleFrom(backgroundColor: const Color(0xFFE8734A), foregroundColor: Colors.white),
+                    style: IconButton.styleFrom(backgroundColor: AppTheme.primaryColor, foregroundColor: Colors.white),
                   ),
                 ],
               ),

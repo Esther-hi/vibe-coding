@@ -6,6 +6,7 @@ import '../../providers/recipe_provider.dart';
 import '../../providers/shopping_list_provider.dart';
 import '../../providers/favorites_provider.dart';
 import '../../../data/models/recipe.dart';
+import '../../../core/theme/app_theme.dart';
 
 class RecipeDetailScreen extends ConsumerStatefulWidget {
   final String recipeId;
@@ -22,7 +23,6 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
   @override
   void initState() {
     super.initState();
-    // If no recipe is selected in provider, load from backend
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final state = ref.read(recipeProvider);
       if (state.selectedRecipe == null || state.selectedRecipe!.id != widget.recipeId) {
@@ -31,9 +31,31 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     });
   }
 
-  Future<void> _generateShoppingList(Recipe recipe) async {
+  List<Recipe> get _selectedRecipes {
+    final state = ref.read(recipeProvider);
+    if (state.selectedRecipeIds.length > 1) {
+      return state.recipes
+          .where((r) => state.selectedRecipeIds.contains(r.id))
+          .toList();
+    }
+    final recipe = state.selectedRecipe;
+    return recipe != null ? [recipe] : [];
+  }
+
+  bool get _allIngredientsAvailable {
+    return _selectedRecipes.every((r) => r.missingIngredients.isEmpty);
+  }
+
+  Future<void> _generateShoppingList() async {
+    final recipes = _selectedRecipes;
+    if (recipes.isEmpty) return;
+
     setState(() => _isGeneratingShoppingList = true);
-    await ref.read(shoppingListProvider.notifier).generateFromRecipe(recipe);
+    if (recipes.length == 1) {
+      await ref.read(shoppingListProvider.notifier).generateFromRecipe(recipes.first);
+    } else {
+      await ref.read(shoppingListProvider.notifier).generateFromRecipes(recipes);
+    }
     setState(() => _isGeneratingShoppingList = false);
 
     if (mounted) {
@@ -45,6 +67,13 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
       } else {
         context.push('/shopping-list');
       }
+    }
+  }
+
+  void _goToCooking() {
+    final state = ref.read(recipeProvider);
+    if (state.selectedRecipe != null) {
+      context.push('/cooking');
     }
   }
 
@@ -61,13 +90,15 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
       );
     }
 
+    final recipes = _selectedRecipes;
     final favNotifier = ref.read(favoritesProvider.notifier);
     final isFav = ref.watch(favoritesProvider).favorites.any((r) => r.id == recipe.id);
-    final availableIngredients = recipe.ingredients.where((e) => e.isAvailable).toList();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(recipe.name),
+        title: recipes.length > 1
+            ? Text('已选 ${recipes.length} 道菜')
+            : Text(recipe.name),
         actions: [
           IconButton(
             icon: Icon(isFav ? Icons.favorite : Icons.favorite_border,
@@ -81,97 +112,142 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 标题信息
-            Text(recipe.name, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            Text(
-              '${recipe.servings ?? ""} ${recipe.cookingTime}分钟 · ${recipe.difficulty}',
-              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 16),
-
-            // 已有食材
-            if (availableIngredients.isNotEmpty)
-              _buildSection(
-                context: context,
-                title: '已有食材',
-                backgroundColor: Colors.green[50],
-                borderColor: Colors.green[100],
-                children: availableIngredients.map((ing) => _buildIngredientRow(
-                  '${ing.name} ${ing.quantity}', '已具备', Colors.green,
-                )).toList(),
+            // 多选菜谱 Chip 列表
+            if (recipes.length > 1)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: recipes.map((r) => Chip(
+                    label: Text(r.name),
+                    visualDensity: VisualDensity.compact,
+                  )).toList(),
+                ),
               ),
 
-            const SizedBox(height: 12),
-
-            // 缺失食材
-            if (recipe.missingIngredients.isNotEmpty)
-              _buildSection(
-                context: context,
-                title: '缺失食材',
-                backgroundColor: Colors.orange[50],
-                borderColor: Colors.orange[100],
-                children: recipe.missingIngredients.map((ing) => _buildIngredientRow(
-                  '${ing.name} ${ing.quantity}', '待购买', Colors.orange,
-                )).toList(),
-              ),
-
-            const SizedBox(height: 12),
-
-            // 步骤摘要
-            _buildSection(
-              context: context,
-              title: '步骤',
-              backgroundColor: Colors.white,
-              borderColor: Colors.grey[300],
-              children: recipe.steps.asMap().entries.map((entry) => Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Text('${entry.key + 1}. ${entry.value}',
-                    style: TextStyle(color: Colors.grey[700], fontSize: 13)),
-              )).toList(),
-            ),
+            // 每道菜的详情
+            ...recipes.map((r) => _buildRecipeCard(context, theme, r, favNotifier)),
 
             const SizedBox(height: 24),
 
-            // Multi-select hint
-            if (state.selectedRecipeIds.length > 1)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(
-                  '已选 ${state.selectedRecipeIds.length} 道菜 · 缺失食材将合并到购物清单',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-
-            // 生成购物清单按钮
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: recipe.missingIngredients.isEmpty
-                    ? null
-                    : _isGeneratingShoppingList
-                        ? null
-                        : () => _generateShoppingList(recipe),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-                child: _isGeneratingShoppingList
-                    ? const SizedBox(
-                        height: 20, width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : Text(
-                        recipe.missingIngredients.isEmpty
-                            ? '食材齐全，无需购物清单'
-                            : '生成购物清单',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-              ),
-            ),
+            // 底部按钮
+            _buildBottomButton(recipes),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRecipeCard(BuildContext context, ThemeData theme, Recipe recipe, dynamic favNotifier) {
+    final availableIngredients = recipe.ingredients.where((e) => e.isAvailable).toList();
+    final isFav = ref.watch(favoritesProvider).favorites.any((r) => r.id == recipe.id);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 菜名标题行
+          Row(
+            children: [
+              Expanded(
+                child: Text(recipe.name,
+                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              ),
+              if (_selectedRecipes.length > 1)
+                IconButton(
+                  icon: Icon(isFav ? Icons.favorite : Icons.favorite_border,
+                      color: isFav ? Colors.red : null, size: 22),
+                  onPressed: () => favNotifier.toggleFavorite(recipe.id),
+                ),
+            ],
+          ),
+          Text(
+            '${recipe.servings ?? ""} ${recipe.cookingTime}分钟 · ${recipe.difficulty}',
+            style: theme.textTheme.bodyMedium?.copyWith(color: AppTheme.secondaryTextColor),
+          ),
+          const SizedBox(height: 12),
+
+          // 已有食材
+          if (availableIngredients.isNotEmpty)
+            _buildSection(
+              context: context,
+              title: '✅ 已有食材',
+              backgroundColor: AppTheme.successColor.withValues(alpha: 0.08),
+              borderColor: AppTheme.successColor.withValues(alpha: 0.2),
+              children: availableIngredients.map((ing) => _buildIngredientRow(
+                '${ing.name} ${ing.quantity}', '已具备', AppTheme.successColor,
+              )).toList(),
+            ),
+
+          if (availableIngredients.isNotEmpty && recipe.missingIngredients.isNotEmpty)
+            const SizedBox(height: 12),
+
+          // 缺失食材
+          if (recipe.missingIngredients.isNotEmpty)
+            _buildSection(
+              context: context,
+              title: '🛒 缺失食材',
+              borderColor: AppTheme.warmColor.withValues(alpha: 0.2),
+              backgroundColor: AppTheme.warmColor.withValues(alpha: 0.08),
+              children: recipe.missingIngredients.map((ing) => _buildIngredientRow(
+                '${ing.name} ${ing.quantity}', '待购买', AppTheme.warmColor,
+              )).toList(),
+            ),
+
+          const SizedBox(height: 12),
+
+          // 步骤
+          _buildSection(
+            context: context,
+            title: '👨‍🍳 步骤',
+            backgroundColor: Theme.of(context).cardColor,
+            borderColor: AppTheme.primaryColor.withValues(alpha: 0.15),
+            children: recipe.steps.asMap().entries.map((entry) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text('${entry.key + 1}. ${entry.value}',
+                  style: TextStyle(color: AppTheme.textColor.withValues(alpha: 0.7), fontSize: 13)),
+            )).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomButton(List<Recipe> recipes) {
+    if (_allIngredientsAvailable) {
+      // 食材齐全 → 直接开始烹饪
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: _goToCooking,
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          ),
+          child: const Text('食材齐全，开始烹饪',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        ),
+      );
+    }
+
+    // 有缺失食材 → 生成购物清单
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _isGeneratingShoppingList ? null : _generateShoppingList,
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        ),
+        child: _isGeneratingShoppingList
+            ? const SizedBox(
+                height: 20, width: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              )
+            : const Text('生成购物清单',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -194,7 +270,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-          const Divider(height: 16),
+          Divider(height: 16, color: AppTheme.primaryColor.withValues(alpha: 0.12)),
           ...children,
         ],
       ),

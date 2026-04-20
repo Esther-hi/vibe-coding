@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../providers/favorites_provider.dart';
 
 class FavoritesScreen extends ConsumerWidget {
@@ -11,17 +12,17 @@ class FavoritesScreen extends ConsumerWidget {
     final favState = ref.watch(favoritesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('收藏菜谱')),
+      appBar: AppBar(title: const Text('❤️ 收藏菜谱')),
       body: favState.isLoading
           ? const Center(child: CircularProgressIndicator())
           : favState.favorites.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.favorite_border, size: 64, color: Colors.grey[300]),
-                      const SizedBox(height: 16),
-                      Text('暂无收藏', style: TextStyle(fontSize: 16, color: Colors.grey[400])),
+                    children: const [
+                      Text('❤️', style: TextStyle(fontSize: 64)),
+                      SizedBox(height: 16),
+                      Text('暂无收藏', style: TextStyle(fontSize: 16, color: AppTheme.secondaryTextColor)),
                     ],
                   ),
                 )
@@ -34,7 +35,7 @@ class FavoritesScreen extends ConsumerWidget {
                       margin: const EdgeInsets.only(bottom: 12),
                       child: ListTile(
                         title: Text(recipe.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('${recipe.servings ?? ""} · ${recipe.cookingTime}分钟 · ${recipe.difficulty}'),
+                        subtitle: Text('${recipe.servings ?? ""} · ${recipe.cookingTime}分钟 · ${recipe.difficulty}', style: const TextStyle(color: AppTheme.secondaryTextColor)),
                         trailing: IconButton(
                           icon: const Icon(Icons.favorite, color: Colors.red),
                           onPressed: () => ref.read(favoritesProvider.notifier).toggleFavorite(recipe.id),

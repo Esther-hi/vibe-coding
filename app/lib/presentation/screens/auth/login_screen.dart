@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -268,12 +269,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.red.shade50,
+                          color: AppTheme.accentColor.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           dialogError!,
-                          style: TextStyle(color: Colors.red.shade700, fontSize: 13),
+                          style: const TextStyle(color: AppTheme.accentColor, fontSize: 13),
                         ),
                       ),
                     ],
@@ -359,7 +360,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Icon(Icons.restaurant_menu, size: 64, color: Theme.of(context).colorScheme.primary),
                   const SizedBox(height: 16),
                   Text(
-                    '智能厨房助手',
+                    '🍳 智能厨房助手',
                     style: Theme.of(context).textTheme.headlineMedium,
                     textAlign: TextAlign.center,
                   ),
@@ -483,7 +484,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           Text(
             label,
             style: TextStyle(
-              color: selected ? Theme.of(context).colorScheme.primary : Colors.grey,
+              color: selected ? Theme.of(context).colorScheme.primary : AppTheme.secondaryTextColor,
               fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
               fontSize: 14,
             ),
@@ -677,12 +678,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.red.shade50,
-        borderRadius: BorderRadius.circular(8),
+        color: AppTheme.accentColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         _errorMessage!,
-        style: TextStyle(color: Colors.red.shade700),
+        style: const TextStyle(color: AppTheme.accentColor),
         textAlign: TextAlign.center,
       ),
     );

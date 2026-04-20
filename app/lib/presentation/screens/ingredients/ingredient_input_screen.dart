@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../providers/ingredient_provider.dart';
+import '../../../core/theme/app_theme.dart';
 
 class IngredientInputScreen extends ConsumerStatefulWidget {
   final bool isManual;
@@ -61,14 +62,14 @@ class _IngredientInputScreenState extends ConsumerState<IngredientInputScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('添加食材')),
+      appBar: AppBar(title: const Text('🥕 添加食材')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('支持拍照识别，也支持手动连续添加，避免识别失败直接卡住。',
-                style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600])),
+                style: theme.textTheme.bodyMedium?.copyWith(color: AppTheme.secondaryTextColor)),
             const SizedBox(height: 16),
 
             // 模式切换
@@ -85,7 +86,7 @@ class _IngredientInputScreenState extends ConsumerState<IngredientInputScreen> {
 
             // 输入区域
             if (_modeIndex < 2)
-              _buildImageArea(state),
+              _buildImageArea(context, state),
             if (_modeIndex == 2)
               _buildManualInput(),
 
@@ -93,7 +94,7 @@ class _IngredientInputScreenState extends ConsumerState<IngredientInputScreen> {
 
             // 已添加食材列表
             if (state.ingredients.isNotEmpty) ...[
-              Text('已添加食材', style: theme.textTheme.titleSmall),
+              Text('✅ 已添加食材', style: theme.textTheme.titleSmall),
               const SizedBox(height: 8),
               ...state.ingredients.asMap().entries.map((entry) => _buildIngredientChip(entry.key, entry.value)),
             ],
@@ -107,7 +108,7 @@ class _IngredientInputScreenState extends ConsumerState<IngredientInputScreen> {
             if (state.error != null)
               Padding(
                 padding: const EdgeInsets.all(8),
-                child: Text(state.error!, style: const TextStyle(color: Colors.orange)),
+                child: Text(state.error!, style: TextStyle(color: AppTheme.warmColor)),
               ),
 
             const SizedBox(height: 16),
@@ -120,9 +121,9 @@ class _IngredientInputScreenState extends ConsumerState<IngredientInputScreen> {
                   onPressed: () => context.push('/ingredients/confirm'),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                   ),
-                  child: const Text('继续', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: const Text('➡️ 继续', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
           ],
@@ -141,26 +142,26 @@ class _IngredientInputScreenState extends ConsumerState<IngredientInputScreen> {
     );
   }
 
-  Widget _buildImageArea(IngredientState state) {
+  Widget _buildImageArea(BuildContext context, IngredientState state) {
     return GestureDetector(
       onTap: () => _pickImage(_modeIndex == 0 ? ImageSource.camera : ImageSource.gallery),
       child: Container(
         height: 160,
         width: double.infinity,
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey[300]!, style: BorderStyle.solid),
-          borderRadius: BorderRadius.circular(18),
-          color: Colors.grey[50],
+          border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.15), style: BorderStyle.solid),
+          borderRadius: BorderRadius.circular(20),
+          color: Theme.of(context).cardColor,
         ),
         child: state.isLoading
             ? const Center(child: CircularProgressIndicator())
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add_a_photo, size: 40, color: Colors.grey[400]),
+                  const Text('📷', style: TextStyle(fontSize: 40)),
                   const SizedBox(height: 8),
                   Text(_modeIndex == 0 ? '点击拍照' : '点击上传图片',
-                      style: TextStyle(color: Colors.grey[500])),
+                      style: TextStyle(color: AppTheme.secondaryTextColor)),
                 ],
               ),
       ),
@@ -202,7 +203,7 @@ class _IngredientInputScreenState extends ConsumerState<IngredientInputScreen> {
         child: Row(
           children: [
             Expanded(child: Text(name, style: const TextStyle(fontSize: 14))),
-            Text('已添加', style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+            Text('已添加', style: TextStyle(color: AppTheme.successColor, fontSize: 12)),
           ],
         ),
       ),

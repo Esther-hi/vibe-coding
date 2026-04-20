@@ -107,13 +107,31 @@ class StepInfo {
   StepInfo({required this.text, this.timerMinutes});
 
   static StepInfo parse(String stepText) {
-    final regex = RegExp(r'\[timer:(\d+)m\]');
-    final match = regex.firstMatch(stepText);
-    if (match != null) {
-      final minutes = int.parse(match.group(1)!);
-      final cleanText = stepText.replaceAll(regex, '').trim();
+    // 1. 结构化标记 [timer:Xm]
+    final markerRegex = RegExp(r'\[timer:(\d+)m\]');
+    final markerMatch = markerRegex.firstMatch(stepText);
+    if (markerMatch != null) {
+      final minutes = int.parse(markerMatch.group(1)!);
+      final cleanText = stepText.replaceAll(markerRegex, '').trim();
       return StepInfo(text: cleanText, timerMinutes: minutes);
     }
+
+    // 2. 自然语言: "X分钟" "X分" "X min"
+    final patterns = [
+      RegExp(r'(\d+)\s*分钟'),
+      RegExp(r'(\d+)\s*分(?![钟种]|\d)'),
+      RegExp(r'(\d+)\s*min'),
+    ];
+    for (final regex in patterns) {
+      final match = regex.firstMatch(stepText);
+      if (match != null) {
+        final minutes = int.parse(match.group(1)!);
+        if (minutes > 0 && minutes <= 180) {
+          return StepInfo(text: stepText, timerMinutes: minutes);
+        }
+      }
+    }
+
     return StepInfo(text: stepText);
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../core/theme/app_theme.dart';
 
 class TimerWidget extends StatefulWidget {
   final int minutes;
@@ -69,7 +70,7 @@ class _TimerWidgetState extends State<TimerWidget> with TickerProviderStateMixin
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(widget.stepDescription, style: const TextStyle(fontSize: 14, color: Colors.grey), textAlign: TextAlign.center),
+          Text(widget.stepDescription, style: const TextStyle(fontSize: 14, color: AppTheme.secondaryTextColor), textAlign: TextAlign.center),
           const SizedBox(height: 20),
           SizedBox(
             width: 160, height: 160,
@@ -79,8 +80,8 @@ class _TimerWidgetState extends State<TimerWidget> with TickerProviderStateMixin
                 CircularProgressIndicator(
                   value: progress,
                   strokeWidth: 8,
-                  backgroundColor: Colors.grey[200],
-                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFE8734A)),
+                  backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.12),
+                  valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                 ),
                 Text(_formatTime(_remainingSeconds), style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
               ],
@@ -93,13 +94,13 @@ class _TimerWidgetState extends State<TimerWidget> with TickerProviderStateMixin
               IconButton(
                 onPressed: () => setState(() => _isPaused = !_isPaused),
                 icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause, size: 32),
-                style: IconButton.styleFrom(backgroundColor: Colors.grey[200]),
+                style: IconButton.styleFrom(backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.12)),
               ),
               const SizedBox(width: 16),
               IconButton(
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.close, size: 28),
-                style: IconButton.styleFrom(backgroundColor: Colors.red[50], foregroundColor: Colors.red),
+                style: IconButton.styleFrom(backgroundColor: AppTheme.accentColor.withValues(alpha: 0.1), foregroundColor: AppTheme.accentColor),
               ),
             ],
           ),

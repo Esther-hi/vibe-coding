@@ -6,6 +6,8 @@ import '../../providers/recipe_provider.dart';
 import '../../providers/ingredient_provider.dart';
 import '../../widgets/recommendation_condition_dialog.dart';
 import '../../../data/models/recipe.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/animations.dart';
 
 class RecipeListScreen extends ConsumerWidget {
   const RecipeListScreen({super.key});
@@ -16,7 +18,7 @@ class RecipeListScreen extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('推荐菜谱')),
+      appBar: AppBar(title: const Text('🍽️ 推荐菜谱')),
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : state.recipes.isEmpty
@@ -30,9 +32,9 @@ class RecipeListScreen extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.restaurant_menu, size: 64, color: Colors.grey[400]),
+          const Text('🍽️', style: TextStyle(fontSize: 64)),
           const SizedBox(height: 16),
-          Text('请先识别食材', style: TextStyle(color: Colors.grey[600])),
+          const Text('请先识别食材', style: TextStyle(color: AppTheme.secondaryTextColor)),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => context.go('/ingredients/input'),
@@ -53,22 +55,25 @@ class RecipeListScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('优先推荐匹配度高、缺料少、适合快速制作的菜。',
-                    style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600])),
+                    style: theme.textTheme.bodyMedium?.copyWith(color: AppTheme.secondaryTextColor)),
                 const SizedBox(height: 16),
-                ...state.recipes.map((recipe) => _buildRecipeCard(context, ref, state, recipe, theme)),
+                ...state.recipes.asMap().entries.map((entry) => SlideInAnimation(
+                      index: entry.key,
+                      child: _buildRecipeCard(context, ref, state, entry.value, theme),
+                    )),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
                   onPressed: () {
                     final ingredients = ref.read(ingredientProvider).ingredients;
                     showRecommendationConditionDialog(context, ref, ingredients);
                   },
-                  icon: const Icon(Icons.tune),
+                  icon: const Icon(Icons.tune, size: 16),
                   label: const Text('重新调整人数 / 口味 / 时长'),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 44),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    side: BorderSide(color: Colors.grey[300]!, style: BorderStyle.solid),
-                    foregroundColor: Colors.grey[600],
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                    side: BorderSide(color: AppTheme.primaryColor.withValues(alpha: 0.2), style: BorderStyle.solid),
+                    foregroundColor: AppTheme.secondaryTextColor,
                   ),
                 ),
               ],
@@ -85,28 +90,27 @@ class RecipeListScreen extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        border: Border(top: BorderSide(color: Colors.grey[300]!)),
+        border: Border(top: BorderSide(color: AppTheme.primaryColor.withValues(alpha: 0.12))),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             '已选 ${state.selectedRecipeIds.length} 道菜 · 缺失食材将合并到购物清单',
-            style: TextStyle(color: Colors.grey[600], fontSize: 13),
+            style: const TextStyle(color: AppTheme.secondaryTextColor, fontSize: 13),
           ),
           const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                if (state.selectedRecipeIds.length == 1) {
-                  final recipe = state.recipes.firstWhere((r) => r.id == state.selectedRecipeIds.first);
+                final recipe = state.recipes.cast<Recipe?>().firstWhere(
+                  (r) => r != null && state.selectedRecipeIds.contains(r.id),
+                  orElse: () => null,
+                );
+                if (recipe != null) {
                   ref.read(recipeProvider.notifier).selectRecipe(recipe);
                   context.push('/recipes/${recipe.id}');
-                } else {
-                  final firstRecipe = state.recipes.firstWhere((r) => state.selectedRecipeIds.contains(r.id));
-                  ref.read(recipeProvider.notifier).selectRecipe(firstRecipe);
-                  context.push('/recipes/${firstRecipe.id}');
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -147,7 +151,7 @@ class RecipeListScreen extends ConsumerWidget {
                       shape: BoxShape.circle,
                       color: isSelected ? theme.colorScheme.primary : Colors.transparent,
                       border: Border.all(
-                        color: isSelected ? theme.colorScheme.primary : Colors.grey,
+                        color: isSelected ? theme.colorScheme.primary : AppTheme.secondaryTextColor,
                       ),
                     ),
                     child: isSelected
@@ -164,8 +168,8 @@ class RecipeListScreen extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 34),
                 child: Text(
-                  '${recipe.servings ?? "${recipe.cookingTime}分钟"} · ${recipe.cookingTime}分钟 · ${recipe.difficulty} · 缺$missingCount项',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  '${recipe.servings ?? ""} · ${recipe.cookingTime}分钟 · ${recipe.difficulty} · 缺$missingCount项',
+                  style: const TextStyle(color: AppTheme.secondaryTextColor, fontSize: 12),
                 ),
               ),
             ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/theme/app_theme.dart';
 import '../providers/recipe_provider.dart';
 
 class RecommendationConditionDialog extends ConsumerStatefulWidget {
@@ -54,19 +55,19 @@ class _RecommendationConditionDialogState extends ConsumerState<RecommendationCo
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('推荐条件')),
+      appBar: AppBar(title: const Text('🎯 推荐条件')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('人数必填，口味和时长可选。先收最少信息，再给更合理的推荐。',
-                style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600])),
+                style: theme.textTheme.bodyMedium?.copyWith(color: AppTheme.secondaryTextColor)),
             const SizedBox(height: 16),
 
             // 用餐人数
             _buildSection(
-              title: '几个人吃饭？',
+              title: '👥 几个人吃饭？',
               child: Wrap(
                 spacing: 8,
                 children: List.generate(_peopleOptions.length, (i) {
@@ -84,7 +85,7 @@ class _RecommendationConditionDialogState extends ConsumerState<RecommendationCo
 
             // 口味偏好
             _buildSection(
-              title: '口味偏好（可选）',
+              title: '🌶️ 口味偏好（可选）',
               child: Wrap(
                 spacing: 8,
                 children: _tasteOptions.map((taste) {
@@ -104,7 +105,7 @@ class _RecommendationConditionDialogState extends ConsumerState<RecommendationCo
 
             // 烹饪时长
             _buildSection(
-              title: '烹饪时长（可选）',
+              title: '⏰ 烹饪时长（可选）',
               child: Wrap(
                 spacing: 8,
                 children: _timeOptions.map((time) {
@@ -129,14 +130,14 @@ class _RecommendationConditionDialogState extends ConsumerState<RecommendationCo
                 onPressed: _isGenerating ? null : _generate,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                 ),
                 child: _isGenerating
                     ? const SizedBox(
                         height: 20, width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
-                    : const Text('生成推荐', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    : const Text('🚀 生成推荐', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -150,8 +151,8 @@ class _RecommendationConditionDialogState extends ConsumerState<RecommendationCo
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.15)),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

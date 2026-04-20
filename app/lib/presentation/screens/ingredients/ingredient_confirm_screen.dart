@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/ingredient_provider.dart';
 import '../../widgets/recommendation_condition_dialog.dart';
+import '../../../core/theme/app_theme.dart';
 
 class IngredientConfirmScreen extends ConsumerStatefulWidget {
   const IngredientConfirmScreen({super.key});
@@ -72,14 +73,14 @@ class _IngredientConfirmScreenState extends ConsumerState<IngredientConfirmScree
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('确认食材')),
+      appBar: AppBar(title: const Text('✅ 确认食材')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('请确认哪些食材识别正确，也可以补充遗漏项。',
-                style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600])),
+                style: theme.textTheme.bodyMedium?.copyWith(color: AppTheme.secondaryTextColor)),
             const SizedBox(height: 16),
 
             // 食材列表
@@ -89,7 +90,7 @@ class _IngredientConfirmScreenState extends ConsumerState<IngredientConfirmScree
               Padding(
                 padding: const EdgeInsets.all(32),
                 child: Center(
-                  child: Text('暂无食材，请返回添加', style: TextStyle(color: Colors.grey[500])),
+                  child: Text('暂无食材，请返回添加', style: TextStyle(color: AppTheme.secondaryTextColor)),
                 ),
               ),
 
@@ -99,14 +100,14 @@ class _IngredientConfirmScreenState extends ConsumerState<IngredientConfirmScree
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
-                borderRadius: BorderRadius.circular(18),
-                color: Colors.grey[50],
+                border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.15)),
+                borderRadius: BorderRadius.circular(20),
+                color: Theme.of(context).cardColor,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('补充食材', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('➕ 补充食材', style: TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -141,9 +142,9 @@ class _IngredientConfirmScreenState extends ConsumerState<IngredientConfirmScree
                 onPressed: state.ingredients.isEmpty ? null : _showRecommendationDialog,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                 ),
-                child: const Text('确认并开始推荐', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: const Text('🚀 确认并开始推荐', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -167,7 +168,7 @@ class _IngredientConfirmScreenState extends ConsumerState<IngredientConfirmScree
             ),
             TextButton(
               onPressed: () => _removeIngredient(index),
-              child: Text('删除', style: TextStyle(fontSize: 12, color: Colors.red[300])),
+              child: Text('删除', style: TextStyle(fontSize: 12, color: AppTheme.accentColor)),
             ),
           ],
         ),

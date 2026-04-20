@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_theme.dart';
 import '../../providers/shopping_list_provider.dart';
 import '../../providers/todo_provider.dart';
 
@@ -13,6 +14,8 @@ class ShoppingListScreen extends ConsumerStatefulWidget {
 }
 
 class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
+  bool _isShopping = false;
+
   @override
   void initState() {
     super.initState();
@@ -24,28 +27,31 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
     });
   }
 
-  Future<void> _addToTodo() async {
+  void _addToTodo() {
     final shoppingState = ref.read(shoppingListProvider);
     final items = shoppingState.items;
-    if (items.isEmpty) return;
+    if (items.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('购物清单为空')),
+      );
+      return;
+    }
 
+    final recipeName = shoppingState.currentRecipeName ?? '菜谱';
+    final servings = shoppingState.currentServings ?? '2人份';
+
+    // 后台尝试保存到后端（不阻塞UI）
     final todoItems = items.map((item) => <String, dynamic>{
       'name': item.ingredientName,
       'quantity': item.quantity,
     }).toList();
+    ref.read(todoProvider.notifier).createTodo([recipeName], servings, todoItems);
 
-    await ref.read(todoProvider.notifier).createTodo(
-      [shoppingState.currentRecipeName ?? '菜谱'],
-      shoppingState.currentServings ?? '2人份',
-      todoItems,
+    // 立即返回首页
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('$recipeName 已加入待办')),
     );
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已加入待办，可在待办页面查看')),
-      );
-      context.pop();
-    }
+    context.go('/');
   }
 
   @override
@@ -56,7 +62,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
     final purchased = state.items.where((e) => e.isPurchased).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('购物清单')),
+      appBar: AppBar(title: const Text('🛒 购物清单')),
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : state.items.isEmpty
@@ -71,8 +77,9 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey[300]!),
-                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                                color: AppTheme.primaryColor.withValues(alpha: 0.15)),
+                            borderRadius: BorderRadius.circular(20),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,16 +88,20 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                                 '${state.currentRecipeName} · ${state.currentServings ?? ""}',
                                 style: const TextStyle(fontWeight: FontWeight.bold),
                               ),
-                              const Divider(height: 16),
+                              Divider(
+                                height: 16,
+                                color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                              ),
                               ...unpurchased.map((item) => _buildItemRow(
                                 context: context,
                                 name: item.ingredientName,
                                 detail: item.quantity,
                                 isPurchased: false,
-                                onCheck: () => ref.read(shoppingListProvider.notifier)
-                                    .togglePurchased(item.id, true),
-                                onDelete: () => ref.read(shoppingListProvider.notifier)
-                                    .deleteItem(item.id),
+                                interactive: _isShopping,
+                                onCheck: _isShopping ? () => ref.read(shoppingListProvider.notifier)
+                                    .togglePurchased(item.id, true) : null,
+                                onDelete: _isShopping ? () => ref.read(shoppingListProvider.notifier)
+                                    .deleteItem(item.id) : null,
                               )),
                             ],
                           ),
@@ -102,24 +113,32 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: Colors.grey[50],
-                            border: Border.all(color: Colors.grey[200]!),
-                            borderRadius: BorderRadius.circular(18),
+                            color: Theme.of(context).cardColor,
+                            border: Border.all(
+                                color: AppTheme.primaryColor.withValues(alpha: 0.1)),
+                            borderRadius: BorderRadius.circular(20),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('已购买', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
-                              const Divider(height: 16),
+                              Text('已购买', style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.secondaryTextColor,
+                              )),
+                              Divider(
+                                height: 16,
+                                color: AppTheme.warmColor.withValues(alpha: 0.3),
+                              ),
                               ...purchased.map((item) => _buildItemRow(
                                 context: context,
                                 name: item.ingredientName,
                                 detail: '已购买',
                                 isPurchased: true,
-                                onCheck: () => ref.read(shoppingListProvider.notifier)
-                                    .togglePurchased(item.id, false),
-                                onDelete: () => ref.read(shoppingListProvider.notifier)
-                                    .deleteItem(item.id),
+                                interactive: _isShopping,
+                                onCheck: _isShopping ? () => ref.read(shoppingListProvider.notifier)
+                                    .togglePurchased(item.id, false) : null,
+                                onDelete: _isShopping ? () => ref.read(shoppingListProvider.notifier)
+                                    .deleteItem(item.id) : null,
                               )),
                             ],
                           ),
@@ -137,7 +156,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                                 onPressed: _addToTodo,
                                 style: OutlinedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(vertical: 14),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                                 ),
                                 child: const Text('📋 加入待办',
                                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -147,14 +166,14 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                             Expanded(
                               child: ElevatedButton(
                                 onPressed: () {
-                                  // 进入采购流程：勾选/取消勾选行为已通过列表项的 onCheck 生效
+                                  setState(() => _isShopping = true);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(content: Text('开始采购，请逐项勾选已购买的食材')),
                                   );
                                 },
                                 style: ElevatedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(vertical: 14),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                                 ),
                                 child: const Text('🛒 开始采购',
                                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -171,9 +190,9 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                             onPressed: () => context.push('/cooking'),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                             ),
-                            child: const Text('完成采购，开始做饭',
+                            child: const Text('👨‍🍳 完成采购，开始做饭',
                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                           ),
                         ),
@@ -188,9 +207,9 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.shopping_cart_outlined, size: 64, color: Colors.grey[400]),
+          const Text('🛒', style: TextStyle(fontSize: 64)),
           const SizedBox(height: 16),
-          Text('购物清单为空', style: TextStyle(color: Colors.grey[600])),
+          Text('购物清单为空', style: TextStyle(color: AppTheme.secondaryTextColor)),
         ],
       ),
     );
@@ -201,8 +220,9 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
     required String name,
     required String detail,
     required bool isPurchased,
-    required VoidCallback onCheck,
-    required VoidCallback onDelete,
+    bool interactive = true,
+    VoidCallback? onCheck,
+    VoidCallback? onDelete,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -211,7 +231,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
           IconButton(
             icon: Icon(
               isPurchased ? Icons.check_circle : Icons.radio_button_unchecked,
-              color: isPurchased ? Colors.green : Colors.grey,
+              color: isPurchased ? AppTheme.successColor : AppTheme.secondaryTextColor,
               size: 20,
             ),
             onPressed: onCheck,
@@ -225,15 +245,16 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
               style: TextStyle(
                 fontSize: 13,
                 decoration: isPurchased ? TextDecoration.lineThrough : null,
-                color: isPurchased ? Colors.grey : null,
+                color: isPurchased ? AppTheme.secondaryTextColor : null,
               ),
             ),
           ),
-          Text(detail, style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+          Text(detail, style: TextStyle(color: AppTheme.secondaryTextColor, fontSize: 12)),
           const SizedBox(width: 4),
-          if (!isPurchased)
+          if (!isPurchased && interactive)
             IconButton(
-              icon: Icon(Icons.delete_outline, size: 16, color: Colors.red[300]),
+              icon: Icon(Icons.delete_outline,
+                  size: 16, color: AppTheme.accentColor.withValues(alpha: 0.7)),
               onPressed: onDelete,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
