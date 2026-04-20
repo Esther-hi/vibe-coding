@@ -72,6 +72,17 @@ class VisionService:
 
         if response.status_code == 200:
             content = response.output.choices[0].message.content
+            # 新版 DashScope SDK content 可能是 list 而非 str
+            if isinstance(content, list):
+                text_parts = []
+                for item in content:
+                    if isinstance(item, dict) and item.get("type") == "text":
+                        text_parts.append(item.get("text", ""))
+                    elif isinstance(item, str):
+                        text_parts.append(item)
+                content = "".join(text_parts)
+            elif not isinstance(content, str):
+                content = str(content)
             return self._parse_response(content)
         else:
             raise Exception(f"API 调用失败: {response.code} - {response.message}")
