@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../data/models/ingredient.dart';
 import '../../data/repositories/ingredient_repository.dart';
 import 'api_client_provider.dart';
@@ -37,7 +37,7 @@ class IngredientNotifier extends StateNotifier<IngredientState> {
 
   IngredientNotifier(this._repository) : super(IngredientState());
 
-  Future<void> recognizeFromImage(File imageFile) async {
+  Future<void> recognizeFromImage(XFile imageFile) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final response = await _repository.recognizeIngredients(imageFile);

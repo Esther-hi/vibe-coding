@@ -64,10 +64,18 @@ class ApiClient {
     return await _dio.delete(path);
   }
 
-  // 上传文件
+  // 上传文件（支持 Web 和移动端）
   Future<Response> uploadFile(String path, String filePath, String fieldName) async {
     final formData = FormData.fromMap({
       fieldName: await MultipartFile.fromFile(filePath),
+    });
+    return await _dio.post(path, data: formData);
+  }
+
+  // 通过字节上传文件（Web 端使用）
+  Future<Response> uploadBytes(String path, List<int> bytes, String fileName, String fieldName) async {
+    final formData = FormData.fromMap({
+      fieldName: MultipartFile.fromBytes(bytes, filename: fileName),
     });
     return await _dio.post(path, data: formData);
   }

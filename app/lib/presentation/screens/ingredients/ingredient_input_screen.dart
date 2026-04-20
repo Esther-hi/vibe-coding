@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -31,7 +30,7 @@ class _IngredientInputScreenState extends ConsumerState<IngredientInputScreen> {
     try {
       final image = await _picker.pickImage(source: source, maxWidth: 1024);
       if (image != null) {
-        ref.read(ingredientProvider.notifier).recognizeFromImage(File(image.path));
+        ref.read(ingredientProvider.notifier).recognizeFromImage(image);
       }
     } catch (e) {
       if (mounted) {
