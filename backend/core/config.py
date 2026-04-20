@@ -1,12 +1,14 @@
 """
 应用配置管理
 """
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional, List
 
 
 class Settings(BaseSettings):
     """应用配置"""
+
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
 
     # 应用配置
     APP_NAME: str = "Kitchen Assistant"
@@ -38,10 +40,6 @@ class Settings(BaseSettings):
     SMS_CODE_EXPIRE_MINUTES: int = 5
     SMS_CODE_RESEND_INTERVAL_SECONDS: int = 60
     SMS_ENABLED: bool = False
-
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
 
 
 settings = Settings()
