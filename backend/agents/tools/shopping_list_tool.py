@@ -1,7 +1,7 @@
 """
 购物清单工具
 """
-from langchain.tools import BaseTool
+from langchain_classic.tools import BaseTool
 from typing import Type, List
 from pydantic import BaseModel, Field
 import asyncio
@@ -19,8 +19,8 @@ class ShoppingListInput(BaseModel):
 class ShoppingListTool(BaseTool):
     """购物清单生成工具"""
 
-    name = "shopping_list"
-    description = "根据菜谱和已有食材生成购物清单"
+    name: str = "shopping_list"
+    description: str = "根据菜谱和已有食材生成购物清单"
     args_schema: Type[BaseModel] = ShoppingListInput
 
     def __init__(self):

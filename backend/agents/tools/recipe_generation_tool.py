@@ -1,7 +1,7 @@
 """
 菜谱生成工具
 """
-from langchain.tools import BaseTool
+from langchain_classic.tools import BaseTool
 from typing import Optional, Type, List
 from pydantic import BaseModel, Field
 import asyncio
@@ -19,8 +19,8 @@ class RecipeGenerationInput(BaseModel):
 class RecipeGenerationTool(BaseTool):
     """菜谱生成工具"""
 
-    name = "recipe_generation"
-    description = "根据可用食材和用户偏好生成菜谱推荐"
+    name: str = "recipe_generation"
+    description: str = "根据可用食材和用户偏好生成菜谱推荐"
     args_schema: Type[BaseModel] = RecipeGenerationInput
 
     def __init__(self):

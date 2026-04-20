@@ -1,7 +1,7 @@
 """
 食材识别工具
 """
-from langchain.tools import BaseTool
+from langchain_classic.tools import BaseTool
 from typing import Optional, Type
 from pydantic import BaseModel, Field
 import asyncio
@@ -17,8 +17,8 @@ class IngredientRecognitionInput(BaseModel):
 class IngredientRecognitionTool(BaseTool):
     """食材识别工具 - 使用 qwen-vl-max 多模态模型"""
 
-    name = "ingredient_recognition"
-    description = "识别冰箱照片中的食材，返回食材列表、数量和新鲜度"
+    name: str = "ingredient_recognition"
+    description: str = "识别冰箱照片中的食材，返回食材列表、数量和新鲜度"
     args_schema: Type[BaseModel] = IngredientRecognitionInput
 
     def __init__(self):
