@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.orm import DeclarativeBase
 
 from core.config import settings
-import models  # noqa: F401
 
 # 创建异步引擎
 engine = create_async_engine(
@@ -38,5 +37,6 @@ async def get_db() -> AsyncSession:
 
 async def init_db():
     """初始化数据库"""
+    import models  # noqa: F401
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
