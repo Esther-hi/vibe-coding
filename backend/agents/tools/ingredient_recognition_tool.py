@@ -1,7 +1,7 @@
 """
 食材识别工具
 """
-from langchain.tools import BaseTool
+from langchain_classic.tools import BaseTool
 from typing import Optional, Type
 from pydantic import BaseModel, Field
 import asyncio

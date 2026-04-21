@@ -1,9 +1,9 @@
 """
 厨房助手主 Agent
 """
-from langchain.agents import AgentExecutor, create_react_agent
-from langchain.prompts import PromptTemplate
-from langchain.llms.base import LLM
+from langchain_classic.agents import AgentExecutor, create_react_agent
+from langchain_classic.prompts import PromptTemplate
+from langchain_core.language_models.llms import LLM
 from typing import Dict, List, Optional
 from dashscope import Generation
 
