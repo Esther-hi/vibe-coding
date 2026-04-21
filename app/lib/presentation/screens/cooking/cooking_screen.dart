@@ -19,6 +19,7 @@ class CookingScreen extends ConsumerStatefulWidget {
 
 class _CookingScreenState extends ConsumerState<CookingScreen> {
   int _currentStep = 0;
+  bool _showingCelebration = false;
 
   List<Recipe> get _recipes {
     final state = ref.read(recipeProvider);
@@ -47,7 +48,7 @@ class _CookingScreenState extends ConsumerState<CookingScreen> {
             child: ElevatedButton(
               onPressed: () {
                 Navigator.pop(ctx);
-                _showCelebration();
+                setState(() => _showingCelebration = true);
               },
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -57,22 +58,6 @@ class _CookingScreenState extends ConsumerState<CookingScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showCelebration() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black26,
-      builder: (_) => CelebrationOverlay(
-        onComplete: () {
-          Navigator.pop(context);
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) _finishCooking();
-          });
-        },
       ),
     );
   }
@@ -88,6 +73,16 @@ class _CookingScreenState extends ConsumerState<CookingScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(recipeProvider);
     final recipes = _recipes;
+
+    // 庆祝动画页面（不用 showDialog，避免 barrier 残留）
+    if (_showingCelebration) {
+      return Scaffold(
+        backgroundColor: Colors.black26,
+        body: CelebrationOverlay(
+          onComplete: _finishCooking,
+        ),
+      );
+    }
 
     if (state.selectedRecipe == null || recipes.isEmpty) {
       return Scaffold(
