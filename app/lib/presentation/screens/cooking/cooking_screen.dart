@@ -47,17 +47,7 @@ class _CookingScreenState extends ConsumerState<CookingScreen> {
             child: ElevatedButton(
               onPressed: () {
                 Navigator.pop(ctx);
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  barrierColor: Colors.black26,
-                  builder: (_) => CelebrationOverlay(
-                    onComplete: () {
-                      Navigator.pop(context);
-                      _finishCooking();
-                    },
-                  ),
-                );
+                _showCelebration();
               },
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -67,6 +57,22 @@ class _CookingScreenState extends ConsumerState<CookingScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showCelebration() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black26,
+      builder: (_) => CelebrationOverlay(
+        onComplete: () {
+          Navigator.pop(context);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _finishCooking();
+          });
+        },
       ),
     );
   }

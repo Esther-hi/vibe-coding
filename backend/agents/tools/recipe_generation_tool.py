@@ -1,7 +1,7 @@
 """
 菜谱生成工具
 """
-from langchain_classic.tools import BaseTool
+from langchain.tools import BaseTool
 from typing import Optional, Type, List
 from pydantic import BaseModel, Field
 import asyncio
@@ -23,10 +23,6 @@ class RecipeGenerationTool(BaseTool):
     description: str = "根据可用食材和用户偏好生成菜谱推荐"
     args_schema: Type[BaseModel] = RecipeGenerationInput
 
-    def __init__(self):
-        super().__init__()
-        self.llm_service = LLMService()
-
     def _run(
         self,
         ingredients: List[str],
@@ -43,7 +39,8 @@ class RecipeGenerationTool(BaseTool):
         count: int = 3
     ) -> str:
         """异步执行菜谱生成"""
-        result = await self.llm_service.generate_recipes(
+        llm_service = LLMService()
+        result = await llm_service.generate_recipes(
             ingredients=ingredients,
             preferences=preferences,
             count=count

@@ -1,14 +1,40 @@
 """
 厨房助手主 Agent
 """
-from langchain_classic.agents import AgentExecutor, create_react_agent
-from langchain_classic.prompts import PromptTemplate
-from typing import Dict, List, Any
+from langchain.agents import AgentExecutor, create_react_agent
+from langchain.prompts import PromptTemplate
+from langchain.llms.base import LLM
+from typing import Dict, List, Optional
+from dashscope import Generation
 
 from core.config import settings
 from agents.tools.ingredient_recognition_tool import IngredientRecognitionTool
 from agents.tools.recipe_generation_tool import RecipeGenerationTool
 from agents.tools.shopping_list_tool import ShoppingListTool
+
+
+class DashScopeLLM(LLM):
+    """直接调用 DashScope Generation API 的 LangChain LLM 封装"""
+
+    api_key: str = ""
+    model_name: str = "qwen-turbo"
+
+    @property
+    def _llm_type(self) -> str:
+        return "dashscope"
+
+    def _call(self, prompt: str, stop=None, **kwargs) -> str:
+        response = Generation.call(
+            model=self.model_name,
+            prompt=prompt,
+            api_key=self.api_key,
+            temperature=0.8,
+            top_p=0.9,
+            max_tokens=1500,
+        )
+        if response.status_code == 200:
+            return response.output.text
+        raise Exception(f"DashScope API 调用失败: {response.code}")
 
 
 class KitchenAssistantAgent:
@@ -31,12 +57,8 @@ class KitchenAssistantAgent:
 
     def _create_agent(self):
         """创建 ReAct Agent"""
-        from langchain_community.chat_models import ChatTongyi
+        llm = DashScopeLLM(api_key=self.api_key, model_name=settings.QWEN_TEXT_MODEL)
 
-        llm = ChatTongyi(
-            model="qwen-turbo",
-            dashscope_api_key=self.api_key,
-        )
         prompt = PromptTemplate.from_template(
             """你是一个温暖、专业的美食助手，帮助用户解决各种关于做菜的问题。
 
@@ -60,7 +82,13 @@ Final Answer: 最终答案
 """
         )
         agent = create_react_agent(llm, self.tools, prompt)
-        return AgentExecutor(agent=agent, tools=self.tools, verbose=True, max_iterations=5)
+        return AgentExecutor(
+            agent=agent,
+            tools=self.tools,
+            verbose=True,
+            max_iterations=5,
+            handle_parsing_errors=True,
+        )
 
     async def process_request(self, user_input: str, context: Dict = None) -> Dict:
         """
@@ -84,19 +112,12 @@ Final Answer: 最终答案
         intent = self._detect_intent(user_input)
 
         if intent == "ingredient_recognition":
-            # 食材识别
-            tool = IngredientRecognitionTool()
             return {"intent": "ingredient_recognition", "result": "请上传图片"}
 
         elif intent == "recipe_generation":
-            # 菜谱生成
-            tool = RecipeGenerationTool()
-            ingredients = context.get("ingredients", []) if context else []
-            result = await tool._arun(ingredients=ingredients)
-            return {"intent": "recipe_generation", "result": result}
+            return {"intent": "recipe_generation", "result": "请告诉我你有哪些食材"}
 
         elif intent == "shopping_list":
-            # 购物清单
             return {"intent": "shopping_list", "result": "请提供菜谱信息"}
 
         else:

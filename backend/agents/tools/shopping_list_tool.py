@@ -1,7 +1,7 @@
 """
 购物清单工具
 """
-from langchain_classic.tools import BaseTool
+from langchain.tools import BaseTool
 from typing import Type, List
 from pydantic import BaseModel, Field
 import asyncio
@@ -23,10 +23,6 @@ class ShoppingListTool(BaseTool):
     description: str = "根据菜谱和已有食材生成购物清单"
     args_schema: Type[BaseModel] = ShoppingListInput
 
-    def __init__(self):
-        super().__init__()
-        self.llm_service = LLMService()
-
     def _run(
         self,
         recipe_name: str,
@@ -43,7 +39,8 @@ class ShoppingListTool(BaseTool):
         available_ingredients: List[str]
     ) -> str:
         """异步执行购物清单生成"""
-        result = await self.llm_service.generate_shopping_list(
+        llm_service = LLMService()
+        result = await llm_service.generate_shopping_list(
             recipe_name=recipe_name,
             missing_ingredients=missing_ingredients,
             available_ingredients=available_ingredients

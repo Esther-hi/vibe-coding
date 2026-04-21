@@ -1,7 +1,7 @@
 """
 食材识别工具
 """
-from langchain_classic.tools import BaseTool
+from langchain.tools import BaseTool
 from typing import Optional, Type
 from pydantic import BaseModel, Field
 import asyncio
@@ -21,16 +21,13 @@ class IngredientRecognitionTool(BaseTool):
     description: str = "识别冰箱照片中的食材，返回食材列表、数量和新鲜度"
     args_schema: Type[BaseModel] = IngredientRecognitionInput
 
-    def __init__(self):
-        super().__init__()
-        self.vision_service = VisionService()
-
     def _run(self, image_base64: str) -> str:
         """同步执行食材识别"""
         return asyncio.run(self._arun(image_base64))
 
     async def _arun(self, image_base64: str) -> str:
         """异步执行食材识别"""
-        result = await self.vision_service.recognize_ingredients(image_base64)
+        vision_service = VisionService()
+        result = await vision_service.recognize_ingredients(image_base64)
         import json
         return json.dumps(result, ensure_ascii=False, indent=2)
