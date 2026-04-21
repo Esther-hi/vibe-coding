@@ -76,7 +76,7 @@ class VisionService:
             if isinstance(content, list):
                 text_parts = []
                 for item in content:
-                    if isinstance(item, dict) and item.get("type") == "text":
+                    if isinstance(item, dict):
                         text_parts.append(item.get("text", ""))
                     elif isinstance(item, str):
                         text_parts.append(item)
