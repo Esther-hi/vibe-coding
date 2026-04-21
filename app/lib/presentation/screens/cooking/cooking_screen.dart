@@ -33,33 +33,7 @@ class _CookingScreenState extends ConsumerState<CookingScreen> {
   }
 
   void _showCompleteDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('🎉 烹饪完成！'),
-        content: Text(_recipes.length > 1
-            ? '${_recipes.map((r) => r.name).join("、")} 已全部完成，开始品鉴吧！'
-            : '${_recipes.first.name} 已完成，开始品鉴吧！'),
-        actions: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                setState(() => _showingCelebration = true);
-              },
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-              ),
-              child: const Text('开始品鉴', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ),
-          ),
-        ],
-      ),
-    );
+    setState(() => _showingCelebration = true);
   }
 
   void _finishCooking() {
